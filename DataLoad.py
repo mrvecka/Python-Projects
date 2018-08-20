@@ -23,17 +23,17 @@ def CreateDataSets(path,mode,trainDataInPercent):
                 cats.append(com.Reshape(np.array(imageData[numOfFiles,i]),1,3072))
                 cats.append(com.Reshape(np.array(cv2.rotate(imageData[numOfFiles,i],cv2.ROTATE_180)),1,3072))
                 cats.append(com.Reshape(np.array(cv2.rotate(imageData[numOfFiles,i],cv2.ROTATE_90_CLOCKWISE)),1,3072))
-                catsLabels.append(1)
-                catsLabels.append(1)
-                catsLabels.append(1)
+                catsLabels.append([1,0])
+                catsLabels.append([1,0])
+                catsLabels.append([1,0])
 
             elif (labeldata[numOfFiles,i] == 4 and j < 500):
                 noCats.append(com.Reshape(np.array(imageData[numOfFiles,i]),1,3072))
                 noCats.append(com.Reshape(np.array(cv2.rotate(imageData[numOfFiles,i],cv2.ROTATE_180)),1,3072))
                 noCats.append(com.Reshape(np.array(cv2.rotate(imageData[numOfFiles,i],cv2.ROTATE_90_CLOCKWISE)),1,3072))
-                noCatsLabels.append(0)
-                noCatsLabels.append(0)
-                noCatsLabels.append(0)
+                noCatsLabels.append([0,1])
+                noCatsLabels.append([0,1])
+                noCatsLabels.append([0,1])
 
                 j+=1
             i+=1
@@ -48,10 +48,10 @@ def CreateDataSets(path,mode,trainDataInPercent):
 
     # add some none cats images to train and test data    
     train_data_x = np.vstack([train_data_x,np.array(noCats[:int(len(noCats) * (trainDataInPercent)/100)])])
-    train_data_y = np.append(train_data_y,np.array(noCatsLabels[:int(len(noCatsLabels) * (trainDataInPercent)/100)]))
+    train_data_y = np.append(train_data_y,np.array(noCatsLabels[:int(len(noCatsLabels) * (trainDataInPercent)/100)]),axis=0)
 
     test_data_x = np.vstack([test_data_x,np.array(noCats[int(len(noCats) * (trainDataInPercent)/100):])])
-    test_data_y = np.append(test_data_y,np.array(noCatsLabels[int(len(noCatsLabels) * (trainDataInPercent)/100):]))
+    test_data_y = np.append(test_data_y,np.array(noCatsLabels[int(len(noCatsLabels) * (trainDataInPercent)/100):]),axis=0)
         
     return train_data_x, train_data_y,test_data_x,test_data_y          
         
