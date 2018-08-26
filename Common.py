@@ -40,3 +40,12 @@ def DevideArrayintoEqualsParts(array,size):
     """Yield successive n-sized parts from array."""
     for i in range(0, len(array), size):
         yield array[i:i + size]
+
+def GetGraySkaledImage(img):
+    g_img = []
+    i =0
+    for i in range(int(img.size/3)):
+        avg = (img[i] + img[1024+i] + img[2048 + i]) /3 
+        g_img.append(int(avg))
+    
+    return np.array(g_img)

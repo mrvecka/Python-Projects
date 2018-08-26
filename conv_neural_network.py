@@ -7,14 +7,15 @@ import numpy as np
 from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
 
-train_data_x, train_data_y, test_data_x, test_data_y = load.CreateDataSets("C:\\Users\\Lukas\\Documents\\Python Projects\\TestData\\cifar-10-batches-py\\data_batch_", "rb", 70)
+train_data_x, train_data_y, test_data_x, test_data_y = load.CreateDataSets("C:\\Users\\Lukas\\Documents\\Python Projects\\TestData\\cifar-10-batches-py\\data_batch_", "rb", 90)
 
+device_name = "/gpu:0"
 
 learning_rate = 0.0001
 epochs = 10
 batch_size = 100
 
-image_placeholder = tf.placeholder(tf.float32, [None,3072])
+image_placeholder = tf.placeholder(tf.float32, [None,1024])
 labels_placeholder = tf.placeholder(tf.float32,[None,2])
 
 shaped_image_placeholder = tf.reshape(image_placeholder,[-1,32,32,1])
@@ -24,11 +25,17 @@ layer1 = icnn.create_new_conv_network(shaped_image_placeholder,1,32,[5,5],[2,2],
 
 layer2 = icnn.create_new_conv_network(layer1,32,64,[5,5],[2,2],name='layer2')
 
+layer3 = icnn.create_new_conv_network(layer2,64,128,[5,5],[2,2],name='layer3')
 
-flattered = tf.reshape(layer2,[-1,8*8*64])
+layer4 = icnn.create_new_conv_network(layer3,128,64,[5,5],[2,2],name='layer4')
+
+#layer5 = icnn.create_new_conv_network(layer4,32,10,[5,5],[2,2],name='layer5')
+
+
+flattered = tf.reshape(layer4,[-1,2*2*64])
 
 # setup some weights and bias values for this layer, then activate with ReLU
-wd1 = tf.Variable(tf.truncated_normal([8 * 8 * 64, 1000], stddev=0.03), name='wd1')
+wd1 = tf.Variable(tf.truncated_normal([2 * 2 * 64, 1000], stddev=0.03), name='wd1')
 bd1 = tf.Variable(tf.truncated_normal([1000], stddev=0.01), name='bd1')
 dense_layer1 = tf.add(tf.matmul(flattered, wd1), bd1)
 dense_layer1 = tf.nn.relu(dense_layer1)
@@ -63,7 +70,7 @@ with tf.Session() as sess:
             indices = np.random.choice(train_data_x.shape[0], batch_size)
             image_batch = train_data_x[indices]
             labels_batch = train_data_y[indices]
-            image_batch = com.Reshape(image_batch,batch_size,3072)
+            image_batch = com.Reshape(image_batch,batch_size,1024)
             
             _, c = sess.run([optimiser, cross_entropy], 
                             feed_dict={image_placeholder: image_batch, labels_placeholder: labels_batch})
@@ -72,12 +79,25 @@ with tf.Session() as sess:
         if len(test_data_x.shape) == 3:
             test_data_x = com.Reshape(test_data_x,test_data_x.shape[0],test_data_x.shape[2])
 
+        # indices = np.random.choice(test_data_x.shape[0], 2000)
+        # img_batch = test_data_x[indices]
+        # lbl_batch = test_data_y[indices]
+        # img_batch = com.Reshape(img_batch,2000,1024)
+
         test_acc = sess.run(accuracy, 
-                       feed_dict={image_placeholder: test_data_x, labels_placeholder: test_data_y})
-        print("Epoch:", (epoch + 1), "cost =", "{:.3f}".format(avg_cost), "test accuracy: {:.3f}".format(test_acc))
+                        feed_dict={image_placeholder: test_data_x, labels_placeholder: test_data_y})
+        
+        print("Epoch:", (epoch + 1),"cost =", "{:.3f}".format(avg_cost), "test accuracy: {:.3f}".format(test_acc))
+            
+
+
+    # indices = np.random.choice(test_data_x.shape[0], 2000)
+    # img_batch = test_data_x[indices]
+    # lbl_batch = test_data_y[indices]
+    # img_batch = com.Reshape(img_batch,2000,1024)
 
     print("\nTraining complete!")
-    print(sess.run(accuracy, feed_dict={image_placeholder: test_data_x, labels_placeholder: test_data_y}))
+    print("Accuracy:",sess.run(accuracy, feed_dict={image_placeholder: test_data_x, labels_placeholder: test_data_y}))
 
 
 # with tf.Session() as sess:

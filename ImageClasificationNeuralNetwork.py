@@ -73,7 +73,7 @@ def create_new_conv_network(input_data, num_input_chanels, num_filters, filter_s
     # add bias
     out_layer += bias
 
-    # apply a elu non-linea activation
+    # apply a relu non-linea activation
     out_layer = tf.nn.relu(out_layer)
 
     # perform max pooling

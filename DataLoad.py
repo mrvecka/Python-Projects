@@ -10,48 +10,41 @@ def CreateDataSets(path,mode,trainDataInPercent):
     # train_data_x = np.empty((200,3072)) #200 train images
     #train_data_y = np.empty((1,200),dtype = np.int16)    #200 train labels
     j = 0
+    l = 0
     i = 0
     cats = []    
     catsLabels = []
     noCats = []
     noCatsLabels = []
-    
+    imsize = 1024
     numOfFiles = len(imageData) -1
-    while (numOfFiles >= 0):
-        while (i < len(imageData[numOfFiles])):
-            if (labeldata[numOfFiles,i] == 3):
-                cats.append(com.Reshape(np.array(imageData[numOfFiles,i]),1,3072))
-                cats.append(com.Reshape(np.array(cv2.rotate(imageData[numOfFiles,i],cv2.ROTATE_180)),1,3072))
-                cats.append(com.Reshape(np.array(cv2.rotate(imageData[numOfFiles,i],cv2.ROTATE_90_CLOCKWISE)),1,3072))
-                catsLabels.append([1,0])
-                catsLabels.append([1,0])
-                catsLabels.append([1,0])
-
-            elif (labeldata[numOfFiles,i] == 4 and j < 500):
-                noCats.append(com.Reshape(np.array(imageData[numOfFiles,i]),1,3072))
-                noCats.append(com.Reshape(np.array(cv2.rotate(imageData[numOfFiles,i],cv2.ROTATE_180)),1,3072))
-                noCats.append(com.Reshape(np.array(cv2.rotate(imageData[numOfFiles,i],cv2.ROTATE_90_CLOCKWISE)),1,3072))
-                noCatsLabels.append([0,1])
-                noCatsLabels.append([0,1])
-                noCatsLabels.append([0,1])
-
-                j+=1
-            i+=1
-        numOfFiles-=1
-
-    
+    f = 0
+    for f in range(10000):
+        img = imageData[f]
+        cats.append(com.Reshape(img,1,imsize))
+        cats.append(com.Reshape(np.array(cv2.rotate(img,cv2.ROTATE_180)),1,imsize))
+        cats.append(com.Reshape(np.array(cv2.rotate(img,cv2.ROTATE_90_CLOCKWISE)),1,imsize))
+        if (labeldata[f] == 3):   
+            catsLabels.append([1,0])
+            catsLabels.append([1,0])
+            catsLabels.append([1,0])
+        else:
+            catsLabels.append([0,1])
+            catsLabels.append([0,1])
+            catsLabels.append([0,1])
+ 
     train_data_x= np.array(cats[:int(len(cats) * (trainDataInPercent)/100)])
     train_data_y = np.array(catsLabels[:int(len(catsLabels) * (trainDataInPercent)/100)])
 
     test_data_x = np.array(cats[int(len(cats) * (trainDataInPercent)/100):])
     test_data_y = np.array(catsLabels[int(len(catsLabels) * (trainDataInPercent)/100):])
 
-    # add some none cats images to train and test data    
-    train_data_x = np.vstack([train_data_x,np.array(noCats[:int(len(noCats) * (trainDataInPercent)/100)])])
-    train_data_y = np.append(train_data_y,np.array(noCatsLabels[:int(len(noCatsLabels) * (trainDataInPercent)/100)]),axis=0)
+    #add some none cats images to train and test data    
+    # train_data_x = np.vstack([train_data_x,np.array(noCats[:int(len(noCats) * (trainDataInPercent)/100)])])
+    # train_data_y = np.append(train_data_y,np.array(noCatsLabels[:int(len(noCatsLabels) * (trainDataInPercent)/100)]),axis=0)
 
-    test_data_x = np.vstack([test_data_x,np.array(noCats[int(len(noCats) * (trainDataInPercent)/100):])])
-    test_data_y = np.append(test_data_y,np.array(noCatsLabels[int(len(noCatsLabels) * (trainDataInPercent)/100):]),axis=0)
+    # test_data_x = np.vstack([test_data_x,np.array(noCats[int(len(noCats) * (trainDataInPercent)/100):])])
+    # test_data_y = np.append(test_data_y,np.array(noCatsLabels[int(len(noCatsLabels) * (trainDataInPercent)/100):]),axis=0)
         
     return train_data_x, train_data_y,test_data_x,test_data_y          
         
@@ -71,10 +64,30 @@ def LoadData(path,mode):
         labels.append(dict['labels'])
         numOfFiles+=1
 
-    imagearray = np.array(images)   #   (10000, 3072)
-    labelarray = np.array(labels)   #   (10000,)
+    g_images = []
+    # for im in range(images.count):
+    #     g_img = []
+    #     c = 0
+    #     for c in images[im].count()/3:
+    #         avg = (images[im][c] + images[im][1024+c] + images[im][2048+c]) /3        
+    #         g_img.append(avg)
+        
+    #     g_images.append(g_img)
+
+    imagesArray = np.array(images)   #   (5, 10000, 3072)
+    imagesArray = com.Reshape(imagesArray,imagesArray.shape[0]*imagesArray.shape[1],imagesArray.shape[2]) # 50000 , 3072
+    g_images = []
+    i = 0
+    for i in range(imagesArray.shape[0]):
+        img = imagesArray[i]
+        img = com.GetGraySkaledImage(img)
+        g_images.append(img)
+
+    labelsArray = np.array(labels)   #   (10000,)
+    labelsArray = np.reshape(labelsArray,(labelsArray.shape[0]*labelsArray.shape[1]))
+
     
-    return imagearray, labelarray
+    return np.array(g_images), labelsArray
         
 def LoadCustomImages(path,labelsPath = ""):
     files = com.GetAllImagesOnPath(path)
