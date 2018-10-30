@@ -1,5 +1,7 @@
 import os
 import numpy as np
+from sklearn import preprocessing
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 extensions = np.array(["jpg","png","tiff"])
 
@@ -49,3 +51,7 @@ def GetGraySkaledImage(img):
         g_img.append(int(avg))
     
     return np.array(g_img)
+
+def Normalize_0to1(array):
+    normalized_X = preprocessing.normalize([array])
+    return normalized_X

@@ -16,22 +16,26 @@ def CreateDataSets(path,mode,trainDataInPercent):
     catsLabels = []
     noCats = []
     noCatsLabels = []
-    imsize = 1024
+    imsize = 3072
     numOfFiles = len(imageData) -1
     f = 0
-    for f in range(10000):
+    for f in range(5000):
         img = imageData[f]
-        cats.append(com.Reshape(img,1,imsize))
-        cats.append(com.Reshape(np.array(cv2.rotate(img,cv2.ROTATE_180)),1,imsize))
-        cats.append(com.Reshape(np.array(cv2.rotate(img,cv2.ROTATE_90_CLOCKWISE)),1,imsize))
-        if (labeldata[f] == 3):   
-            catsLabels.append([1,0])
-            catsLabels.append([1,0])
-            catsLabels.append([1,0])
-        else:
-            catsLabels.append([0,1])
-            catsLabels.append([0,1])
-            catsLabels.append([0,1])
+        label =labeldata[f]
+        if (label == 1 or label == 2):
+            cats.append(com.Reshape(img,1,imsize))
+            cats.append(com.Reshape(np.array(cv2.rotate(img,cv2.ROTATE_180)),1,imsize))
+            cats.append(com.Reshape(np.array(cv2.rotate(img,cv2.ROTATE_90_CLOCKWISE)),1,imsize))
+            labelarray = []
+            if (labeldata[f] == 1):
+                labelarray = [1,0]
+            elif (labeldata[f] == 2):
+                labelarray = [0,1]
+            else:
+                {}
+            catsLabels.append(labelarray)
+            catsLabels.append(labelarray)
+            catsLabels.append(labelarray)
  
     train_data_x= np.array(cats[:int(len(cats) * (trainDataInPercent)/100)])
     train_data_y = np.array(catsLabels[:int(len(catsLabels) * (trainDataInPercent)/100)])
@@ -45,6 +49,9 @@ def CreateDataSets(path,mode,trainDataInPercent):
 
     # test_data_x = np.vstack([test_data_x,np.array(noCats[int(len(noCats) * (trainDataInPercent)/100):])])
     # test_data_y = np.append(test_data_y,np.array(noCatsLabels[int(len(noCatsLabels) * (trainDataInPercent)/100):]),axis=0)
+
+    train_data_x = train_data_x.reshape(train_data_x.shape[0],3072)
+    test_data_x = test_data_x.reshape(test_data_x.shape[0],3072)
         
     return train_data_x, train_data_y,test_data_x,test_data_y          
         
@@ -65,29 +72,24 @@ def LoadData(path,mode):
         numOfFiles+=1
 
     g_images = []
-    # for im in range(images.count):
-    #     g_img = []
-    #     c = 0
-    #     for c in images[im].count()/3:
-    #         avg = (images[im][c] + images[im][1024+c] + images[im][2048+c]) /3        
-    #         g_img.append(avg)
-        
-    #     g_images.append(g_img)
 
     imagesArray = np.array(images)   #   (5, 10000, 3072)
     imagesArray = com.Reshape(imagesArray,imagesArray.shape[0]*imagesArray.shape[1],imagesArray.shape[2]) # 50000 , 3072
-    g_images = []
-    i = 0
-    for i in range(imagesArray.shape[0]):
-        img = imagesArray[i]
-        img = com.GetGraySkaledImage(img)
-        g_images.append(img)
+    # g_images = []
+    # i = 0
+    # for i in range(imagesArray.shape[0]):
+    #     img = imagesArray[i]
+    #     img = com.GetGraySkaledImage(img)
+    #     img = com.Normalize_0to1(img)
+    #     g_images.append(img)
 
+
+    # images = np.array(g_images)
+    # images = images.reshape((images.shape[0],1024))
+    
     labelsArray = np.array(labels)   #   (10000,)
     labelsArray = np.reshape(labelsArray,(labelsArray.shape[0]*labelsArray.shape[1]))
-
-    
-    return np.array(g_images), labelsArray
+    return imagesArray, labelsArray
         
 def LoadCustomImages(path,labelsPath = ""):
     files = com.GetAllImagesOnPath(path)

@@ -6,6 +6,12 @@ class Walker:
         self.coordinates = coordinates
         self.z = z
 
+        self.rand1 = 0.0
+        self.rand2 = 0.0
+        self.velocity = 0.0
+        self.pBest = None
+
+
     def setZ(self, z):
         self.z = z
 

@@ -23,11 +23,11 @@ max_step = 1000
 
 with tf.device(device_name): 
 
-    image_placeholder = tf.placeholder(tf.float32, shape = [None, 3072], name="image_placeholder")
+    image_placeholder = tf.placeholder(tf.float32, shape = [None, 1024], name="image_placeholder")
     labels_placeholder = tf.placeholder(tf.int64, shape = [None],name="labels_placeholder")
 
 
-    weights = tf.Variable(tf.zeros([3072, n_classes]),name="wights")
+    weights = tf.Variable(tf.zeros([1024, n_classes]),name="wights")
     biases = tf.Variable(tf.zeros([n_classes]),name="biases")
 
     # trenovanie
@@ -66,42 +66,42 @@ for epoch in range(epochs):
         indices = np.random.choice(train_data_x.shape[0], batch_size)
         image_batch = train_data_x[indices]
         labels_batch = train_data_y[indices]
-        image_batch = com.Reshape(image_batch,batch_size,3072)
+        image_batch = com.Reshape(image_batch,batch_size,1024)
 
         train_accuracy = sess.run(train_step, feed_dict =  {image_placeholder:image_batch, labels_placeholder:labels_batch})
-        #print('Step {:5d}: training accuracy {:g}'.format(i, train_accuracy))
-        #epoch_loss +=train_accuracy[1]
-        #print('Epoch loss {:g}'.format(train_accuracy))
+        print('Step {:5d}: training accuracy {:g}'.format(i, train_accuracy))
+        epoch_loss +=train_accuracy
+    print('Epoch loss {:g}'.format(epoch_loss))
 
-# if len(test_data_x.shape) == 3:
-#     test_data_x = com.Reshape(test_data_x,test_data_x.shape[0],test_data_x.shape[2])
+if len(test_data_x.shape) == 3:
+    test_data_x = com.Reshape(test_data_x,test_data_x.shape[0],test_data_x.shape[2])
 
-# test_accuracy = sess.run(accuracy, feed_dict =  {image_placeholder:test_data_x, labels_placeholder:test_data_y})
+test_accuracy = sess.run(accuracy, feed_dict =  {image_placeholder:test_data_x, labels_placeholder:test_data_y})
 
-cap = cv2.VideoCapture('C:\\Users\\Lukas\\Documents\\Python Projects\\TestData\\cats.avi')
-i = 0
-while(cap.isOpened()):
-    if i % 10 == 0:        
-        ret, frame = cap.read()
-        #gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        result = load.GetImageAsArray(frame)
-        result = com.Reshape(result,1,result.shape[0])
-        res = sess.run(acc, feed_dict = {image_placeholder:result, labels_placeholder:[1]})
+# cap = cv2.VideoCapture('C:\\Users\\Lukas\\Documents\\Python Projects\\TestData\\cats.avi')
+# i = 0
+# while(cap.isOpened()):
+#     if i % 10 == 0:        
+#         ret, frame = cap.read()
+#         #gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+#         result = load.GetImageAsArray(frame)
+#         result = com.Reshape(result,1,result.shape[0])
+#         res = sess.run(acc, feed_dict = {image_placeholder:result, labels_placeholder:[1]})
         
-        print("Prediction for image is {:g}".format(res[0]))
-    i+=1
+#         print("Prediction for image is {:g}".format(res[0]))
+#     i+=1
 
 
-cap.release()
-cv2.destroyAllWindows()
+# cap.release()
+# cv2.destroyAllWindows()
 
-# print("\n")
-# print("\n")
-# print("\n")
-# print('Test accuracy {:g}'.format(test_accuracy))
-# print("\n")
-# print("\n")
-# print("\n")
+print("\n")
+print("\n")
+print("\n")
+print('Test accuracy {:g}'.format(test_accuracy))
+print("\n")
+print("\n")
+print("\n")
 
 saver.save(sess,"C:\\Users\\Lukas\\Documents\\Python Projects\\Saved models\\my_test_model2")
 sess.close()

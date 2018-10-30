@@ -58,20 +58,23 @@ def CreateNeuralNetwork(data,n_layers,n_classes,n_nodes):
     return output
 
 
-def create_new_conv_network(input_data, num_input_chanels, num_filters, filter_shape, pool_shape, name):
+def create_new_conv_network(input_data, num_input_chanels, num_output_channels, filter_shape, pool_shape, name,is_training):
     # setup the filter input shape for tf.nn.conv_2d
-    conv_filter_shape = [filter_shape[0],filter_shape[1], num_input_chanels, num_filters]
+    conv_filter_shape = [filter_shape[0],filter_shape[1], num_input_chanels, num_output_channels]
 
     # initialize weights anddd bias for the filter
-    weights = tf.Variable(tf.truncated_normal(conv_filter_shape, stddev=0.03),name=name+'_W')
+    weights = tf.Variable(tf.truncated_normal(conv_filter_shape, stddev=0.1),name=name+'_W')
 
-    bias = tf.Variable(tf.truncated_normal([num_filters]),name=name+'_b')
+    bias = tf.Variable(tf.truncated_normal([num_output_channels]),name=name+'_b')
 
     # setup the convolutional layer network
-    out_layer = tf.nn.conv2d(input_data,weights,[1,1,1,1],padding='SAME')
+    out_layer = tf.nn.conv2d(input_data,weights,strides=[1,1,1,1],padding='SAME')
 
     # add bias
-    out_layer += bias
+    out_layer = tf.add(out_layer,bias)
+
+    # normalization
+    out_layer = tf.layers.batch_normalization(out_layer,training=is_training)
 
     # apply a relu non-linea activation
     out_layer = tf.nn.relu(out_layer)

@@ -37,9 +37,9 @@ def GenerateField(w_x,w_y):
         field.append(f.Walker((x[i][0],x[i][1]),0))
     return field
 
-def GenerateRandomUniformField(min,max):
-    x = np.random.uniform(min,max,20)
-    y = np.random.uniform(min,max,20)
+def GenerateRandomUniformField(min,max,size):
+    x = np.random.uniform(min,max,size)
+    y = np.random.uniform(min,max,size)
     field = []
     for i in range(len(x)):
         field.append(f.Walker((x[i],y[i]),0))
@@ -154,17 +154,17 @@ def BlindAlgorithm(iterations,range_x,range_y,func):
 
 # AnnealingAlgorithm(-40,40,f.SphereFunction(-50,50,1))
 
-res = 0
-res2 = 0
-iterations = 0
-for i in range(30):
-    tmp, iterations = AnnealingAlgorithm(-2,1,f.SchwefelFunction(-500,500,1))
-    print(iterations)
-    res2 += tmp
-    res += HillClimb(iterations,-2,1,f.SchwefelFunction(-500,500,1))
+# res = 0
+# res2 = 0
+# iterations = 0
+# for i in range(30):
+#     tmp, iterations = AnnealingAlgorithm(-2,1,f.SchwefelFunction(-500,500,1))
+#     print(iterations)
+#     res2 += tmp
+#     res += HillClimb(iterations,-2,1,f.SchwefelFunction(-500,500,1))
 
-print(res/30)
-print(res2/30)
+# print(res/30)
+# print(res2/30)
 
 
 
@@ -177,17 +177,6 @@ print(res2/30)
 # f3    0.012414146683253805    5.276187574210139
 # f4    1.9785660576933395      16.713162055571043
 # f5    809.9377074209818       691.8634345551397
-
-
-# soma - uniformne vygenerovat nahodnu populaciu(nie okolo nejakeho bodu)
-# ohodnotis ich
-# vyberes lidra s najlepsim fitness
-# prechadzas vsetkych jedincov
-# pre kazdy vygenerujes ptr (v nasom pripade 2 dim)
-# pre kazdu dim vygenerujem nahodne cislo, ak je mensi tak ptr na danej dim bude 1 inak 0
-# zacne skakat, pre kazdy skok si vypocita fitness a zapameta
-# pocitas pre kazdy dim samostatne 
-
 
 def GetPerturbationVector(dim,ptr_value):
     x = np.random.uniform(0,1,dim)
@@ -213,20 +202,17 @@ def SomaAlgorithm(func):
     Z = zs.reshape(X.shape)
     ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap='viridis', edgecolor='none')
 
-    field = GenerateRandomUniformField(func.Min,func.Max)
+    field = GenerateRandomUniformField(func.Min,func.Max,20)
     func.CalculateField(field)
     leader = FindMinimum2(field)
 
     for u in range(len(field)):
-        ax.scatter(field[u].coordinates[0],field[u].coordinates[1],field[u].z-0.2,color="black",s=20)
+        ax.scatter(field[u].coordinates[0],field[u].coordinates[1],field[u].z-0.2,color="r",s=20)
 
-    ax.scatter(leader.coordinates[0],leader.coordinates[1],leader.z-0.2,color="r",s=20)
+    ax.scatter(leader.coordinates[0],leader.coordinates[1],leader.z-0.2,color="yellow",s=20)
 
     for s in range(10):
-        plt.show()
         for k in range(len(field)):
-            if (leader == field[k]):
-                continue
             
             jumps = []
             for i in range(0,int(pathLength/step),1):
@@ -241,8 +227,6 @@ def SomaAlgorithm(func):
             field[k] = new_pos
         
         ax.clear()
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
         x = y = np.arange(func.Min, func.Max, func.Density)
         X, Y = np.meshgrid(x, y)
         zs = np.array([func.CalculateVector((x,y)) for x,y in zip(np.ravel(X), np.ravel(Y))])  
@@ -250,14 +234,87 @@ def SomaAlgorithm(func):
         ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap='viridis', edgecolor='none')
 
         for h in range(len(field)):
-            ax.scatter( field[h].coordinates[0],field[h].coordinates[1],field[h].z-0.2,color="black",s=20)
+            ax.scatter( field[h].coordinates[0],field[h].coordinates[1],field[h].z-0.2,color="r",s=20)
 
         leader = FindMinimum2(field)
-        ax.scatter(leader.coordinates[0],leader.coordinates[1],leader.z-0.2,color="r",s=20)
-        plt.show()
+        ax.scatter(leader.coordinates[0],leader.coordinates[1],leader.z-0.2,color="yellow",s=20)
+        plt.pause(1.0)
+    plt.show()
 
 
-#SomaAlgorithm(f.SphereFunction(-2,2,0.1))
+# SomaAlgorithm(f.SphereFunction(-2,2,0.1))
 
 
+def ParticalSwarnAlgorithm(func):
+
+    iterations = 20
+    particles = 10;
+    c1 = 2
+    c2 = 2
+    weightStart = 0.9
+    wightEnd = 0.4
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    x = y = np.arange(func.Min-3, func.Max+3, func.Density)
+    X, Y = np.meshgrid(x, y)
+    zs = np.array([func.CalculateVector((x,y)) for x,y in zip(np.ravel(X), np.ravel(Y))])  
+    Z = zs.reshape(X.shape)
+    ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap='viridis', edgecolor='none')
+
+    field = GenerateRandomUniformField(func.Min,func.Max,particles)    
+    func.CalculateField(field)
+    gBest = FindMinimum2(field)
+
+    for u in range(len(field)):
+        ax.scatter(field[u].coordinates[0],field[u].coordinates[1],field[u].z-0.2,color="black",s=20)
+
+    initialVelocity = (abs(func.Min) + abs(func.Max)) / 20
+    for i in range(particles):
+        field[i].rand1 = np.random.uniform(0,1,1)
+        field[i].rand2 = np.random.uniform(0,1,1)
+        field[i].velocity = np.tile(initialVelocity,len(field[0].coordinates))
+
+    for i in range(iterations):
+        for j in range(particles):
+            newVelocityVector = []
+            newCoordinatesVector = []
+            weight = weightStart - ((weightStart - wightEnd)*i)/iterations
+            for k in range(len(field[j].coordinates)):
+                vel = 0.0
+                if (field[j].pBest == None):
+                    field[j].pBest = field[j]
+
+                vel = weight * field[j].velocity[k] + c1 * field[j].rand1 * (field[j].pBest.coordinates[k] - field[j].coordinates[k]) + c2 * field[j].rand2 * (gBest.coordinates[k] - field[j].coordinates[k]) 
+                
+                if (vel > initialVelocity):
+                    vel = initialVelocity
+                newVelocityVector.append(vel)
+                pos = field[j].coordinates[k] + vel
+                newCoordinatesVector.append(pos)
+                           
+            field[j].coordinates = newCoordinatesVector
+            field[j].velocity = newVelocityVector
+
+            field[j].z = func.CalculateVector(field[j].coordinates)
+            if (field[j].z < field[j].pBest.z):                
+                field[j].pBest = field[j]
+            if (field[j].pBest.z < gBest.z):
+                gBest = field[j].pBest
+
+        plt.pause(1.0)
+        ax.clear()
+        x = y = np.arange(func.Min-3, func.Max+3, func.Density)
+        X, Y = np.meshgrid(x, y)
+        zs = np.array([func.CalculateVector((x,y)) for x,y in zip(np.ravel(X), np.ravel(Y))])  
+        Z = zs.reshape(X.shape)
+        ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap='viridis', edgecolor='none')
+
+        for h in range(len(field)):
+            ax.scatter( field[h].coordinates[0],field[h].coordinates[1],field[h].z-0.2,color="r",s=20)
+
+        ax.scatter(gBest.coordinates[0],gBest.coordinates[1],gBest.z-0.2,color="yellow",s=20)
+    plt.show()
+
+ParticalSwarnAlgorithm(f.SphereFunction(-2,2,0.1))
 
